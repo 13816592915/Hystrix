@@ -299,6 +299,7 @@ public abstract class HystrixCommand<R> extends AbstractCommand<R> implements Hy
             @Override
             public Observable<R> call() {
                 try {
+                    // [FIVE]- 返回创建 执行命令Observable 执行run() 方法
                     return Observable.just(run());
                 } catch (Throwable ex) {
                     return Observable.error(ex);

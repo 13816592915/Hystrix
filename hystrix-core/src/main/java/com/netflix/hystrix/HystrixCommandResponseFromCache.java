@@ -5,7 +5,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
+// [FIVE]- 继承HystrixCachedObservable
 public class HystrixCommandResponseFromCache<R> extends HystrixCachedObservable<R> {
     private final AbstractCommand<R> originalCommand;
 
