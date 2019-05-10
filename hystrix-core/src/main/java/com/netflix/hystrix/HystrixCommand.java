@@ -300,6 +300,8 @@ public abstract class HystrixCommand<R> extends AbstractCommand<R> implements Hy
             public Observable<R> call() {
                 try {
                     // [FIVE]- 返回创建 执行命令Observable 执行run() 方法
+                    // 也就是说，如果命令没有从缓存获取、熔断器没有使其走fallback、获得了线程/信号量资源
+                    // 最终没毛病才会考虑在执行的时候运行run()方法。
                     return Observable.just(run());
                 } catch (Throwable ex) {
                     return Observable.error(ex);
