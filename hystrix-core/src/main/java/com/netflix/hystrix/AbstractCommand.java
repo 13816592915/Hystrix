@@ -249,11 +249,13 @@ import java.util.concurrent.atomic.AtomicReference;
         if (enabled) {
             if (fromConstructor == null) {
                 // get the default implementation of HystrixCircuitBreaker
+                // [FIVE]- HystrixCircuitBreaker.Factory： 断路器工厂
                 return HystrixCircuitBreaker.Factory.getInstance(commandKey, groupKey, properties, metrics);
             } else {
                 return fromConstructor;
             }
         } else {
+            // [FIVE]- 如果没有打开断路器支持，使用空断路器
             return new NoOpCircuitBreaker();
         }
     }

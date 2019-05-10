@@ -98,6 +98,7 @@ public interface HystrixCircuitBreaker {
             // Create and add to the map ... use putIfAbsent to atomically handle the possible race-condition of
             // 2 threads hitting this point at the same time and let ConcurrentHashMap provide us our thread-safety
             // If 2 threads hit here only one will get added and the other will get a non-null response instead.
+            // 创建完整的断路器 HystrixCircuitBreakerImpl
             HystrixCircuitBreaker cbForCommand = circuitBreakersByCommand.putIfAbsent(key.name(), new HystrixCircuitBreakerImpl(key, group, properties, metrics));
             if (cbForCommand == null) {
                 // this means the putIfAbsent step just created a new one so let's retrieve and return it
@@ -129,6 +130,7 @@ public interface HystrixCircuitBreaker {
     }
 
 
+    // [FIVE]- 完整断路器实现
     /**
      * The default production implementation of {@link HystrixCircuitBreaker}.
      * 
@@ -139,6 +141,10 @@ public interface HystrixCircuitBreaker {
         private final HystrixCommandProperties properties;
         private final HystrixCommandMetrics metrics;
 
+        // [FIVE]- 断路器三个状态
+        //  OPEN：打开，链路处于非健康状态，命令直接返回回退逻辑。
+        //  HALF_OPEN：半开
+        //  CLOSE：关闭
         enum Status {
             CLOSED, OPEN, HALF_OPEN;
         }
@@ -175,6 +181,7 @@ public interface HystrixCircuitBreaker {
 
                         @Override
                         public void onNext(HealthCounts hc) {
+                            // [FIVE]- 判断请求数是否达到
                             // check if we are past the statisticalWindowVolumeThreshold
                             if (hc.getTotalRequests() < properties.circuitBreakerRequestVolumeThreshold().get()) {
                                 // we are not past the minimum volume threshold for the stat window,
@@ -183,6 +190,7 @@ public interface HystrixCircuitBreaker {
                                 // if it was half-open, we need to wait for a successful command execution
                                 // if it was open, we need to wait for sleep window to elapse
                             } else {
+                                // [FIVE]- 请求错误比例超过设置
                                 if (hc.getErrorPercentage() < properties.circuitBreakerErrorThresholdPercentage().get()) {
                                     //we are not past the minimum error threshold for the stat window,
                                     // so no change to circuit status.
@@ -191,6 +199,7 @@ public interface HystrixCircuitBreaker {
                                     // if it was open, we need to wait for sleep window to elapse
                                 } else {
                                     // our failure rate is too high, we need to set the state to OPEN
+                                    // [FIVE]- 修改熔断器状态为 OPEN
                                     if (status.compareAndSet(Status.CLOSED, Status.OPEN)) {
                                         circuitOpened.set(System.currentTimeMillis());
                                     }
@@ -288,6 +297,7 @@ public interface HystrixCircuitBreaker {
         }
     }
 
+    // [FIVE]- 空断路器，不开启断路器的情况
     /**
      * An implementation of the circuit breaker that does nothing.
      * 
